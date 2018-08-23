@@ -2,7 +2,8 @@
 ip6tables rules
 ```
 -A INPUT -m state --state ESTABLISHED,RELATED -m comment --comment "statefull firewall" -j ACCEPT
-
+-A INPUT -m set --match-set public-services-v6 dst,dst -m comment --comment "allow public services" -j ACCEPT
+-A INPUT -m set --match-set retricted-services-v6 dst,dst,src -m comment --comment "allow restricted services" -j ACCEPT
 -A INPUT -i lo -m comment --comment "allow from localhost" -j ACCEPT
 -A INPUT -m udp -p udp --dport 546 -d fe80::/64      -m comment --comment "dhcpv6" -j ACCEPT
 -A INPUT              -p ipv6-icmp --icmpv6-type 1   -m comment --comment "destination unreachable" -j ACCEPT
@@ -27,3 +28,13 @@ ip6tables rules
 -A INPUT -s fe80::/10 -p ipv6-icmp --icmpv6-type 153 -m comment --comment "multicast router termination" -j ACCEPT
 -A INPUT              -p ipv6-icmp -m limit --limit 1/second --limit-burst 100 --log-prefix "dropped ICMPv6: " -j LOG
 ```
+rules.ipset
+```
+create public-services hash:ip,port counters comment
+add public-services 25.25.25.25,https comment "HTTPS"
+add public-services 25.25.25.25,udp:53 comment "DNS
+add public-services 25.25.25.25,icmp:ping comment "Echo Ping"
+create restricted-services hash:ip,port,ip counters comment
+add restricted-services 192.168.1.1,icmp:ping,25.25.25.25 comment "Access from home"
+```
+
